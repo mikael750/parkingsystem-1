@@ -17,6 +17,7 @@ public class FareCalculatorService {
         //TODO: Some tests are failing here. Need to check if this logic is correct
         long dureMinutes = outHour/1000/60 - inHour/1000/60;
 
+
         //Le prix du Ticket est different selon le taux, la durer et le vehicule
         double taux = 1.0;
         int duration = (int)dureMinutes / 60;
