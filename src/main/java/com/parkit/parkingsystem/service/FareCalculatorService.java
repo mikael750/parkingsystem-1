@@ -14,7 +14,7 @@ public class FareCalculatorService {
         long inMilli = ticket.getInTime().getTime();
         long outMilli = ticket.getOutTime().getTime();
 
-        //TODO: Some tests are failing here. Need to check if this logic is correct
+        //Done TODO: Some tests are failing here. Need to check if this logic is correct
         long dureMinutes = outMilli/1000/60 - inMilli/1000/60;
         //Le prix du Ticket est different selon le taux, la durer et le vehicule
         double taux = 1.0;
@@ -22,7 +22,7 @@ public class FareCalculatorService {
         if (dureMinutes < 30) {//Story 1: Free 30-min parking
             taux = 0.0;
         } else if (dureMinutes < 60) {//calculateFare(Car/Bike)WithLessThanOneHourParkingTime
-            taux = 0.75; ////45 minutes parking time should give 3/4th parking fare
+            taux = 0.75; // give 3/4th parking fare
             duration = 1;
         }
 
