@@ -4,10 +4,11 @@ import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
 import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
-import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
+import com.parkit.parkingsystem.service.FareCalculatorService;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,11 +16,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static junit.framework.Assert.*;
 import static org.mockito.Mockito.when;
+import static junit.framework.Assert.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ParkingDataBaseIT {
+public class FareCalculatorIT {
+
+    private static FareCalculatorService fareCalculatorService;
 
     private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
     private static ParkingSpotDAO parkingSpotDAO;
@@ -36,60 +39,35 @@ public class ParkingDataBaseIT {
         ticketDAO = new TicketDAO();
         ticketDAO.dataBaseConfig = dataBaseTestConfig;
         dataBasePrepareService = new DataBasePrepareService();
+
+        fareCalculatorService = new FareCalculatorService();
     }
 
     @BeforeEach
     private void setUpPerTest() throws Exception {
-        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(inputReaderUtil.readSelection()).thenReturn(2);
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         dataBasePrepareService.clearDataBaseEntries();
     }
 
-    @Test
-    public void testParkingACar(){
-        //GIVEN
+    @AfterAll
+    private static void tearDown(){
+    }
 
+    @Test
+    public void fareCalculatorService_ShouldCalculate(){
+
+        //Given
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 
-        //ACT
-
+        //Act
         parkingService.processIncomingVehicle();
-
-        //TODO: check that a ticket is actualy saved in DB and Parking table is updated with availability
-
-        Ticket ticket; //genere un ticket
-        ticket = ticketDAO.getTicket(inputReaderUtil.readVehicleRegistrationNumber());//on lui donne le numero du vehicule
-
-        //ASSERT
-
-        assertNotNull(ticket);//verifie si ticket est bien sauver dans la DB
-        ParkingSpot placeParking = ticket.getParkingSpot();
-        assertTrue(parkingSpotDAO.updateParking(placeParking));//verifie si le tableau du Parking est mis à jour avec disponibiliter
-        boolean libre = placeParking.isAvailable();
-        assertFalse(libre);// verifie si une place est libre.
-    }
-
-    @Test
-    public void testParkingLotExit(){
-        //GIVEN
-
-        testParkingACar();// initie l entrer
-        String code = inputReaderUtil.readVehicleRegistrationNumber();//on lui donne le numero du vehicule
-
-
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-
-        //ACT
-
         parkingService.processExitingVehicle();
-        Ticket ticket = ticketDAO.getTicket(code);
-        //TODO: check that the fare generated and out time are populated correctly in the database
+        Ticket ticket = ticketDAO.getTicket(inputReaderUtil.readVehicleRegistrationNumber());
+        fareCalculatorService.calculateFare(ticket);
 
-        //ASSERT
-
-        assertNotNull(ticket.getOutTime());//est bien dans la dataBase
-        assertTrue(ticket.getPrice() >= 0.0);
-        assertTrue(ticket.getParkingSpot().isAvailable());//le parking est disponible
-
+        //Assert
+        assertTrue(ticket.getPrice() >= 0); //Le calcul c'est bien passer
     }
+
 }

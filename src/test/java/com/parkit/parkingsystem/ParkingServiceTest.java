@@ -3,11 +3,13 @@ package com.parkit.parkingsystem;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
+import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
+import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
-import com.parkit.parkingsystem.util.ParkingDate;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +25,8 @@ import static org.mockito.Mockito.*;
 public class ParkingServiceTest {
 
     private static ParkingService parkingService;
+    private static DataBasePrepareService dataBasePrepareService;
+    private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
 
     @Mock
     private static InputReaderUtil inputReaderUtil;
@@ -30,13 +34,22 @@ public class ParkingServiceTest {
     private static ParkingSpotDAO parkingSpotDAO;
     @Mock
     private static TicketDAO ticketDAO;
-    @Mock
-    private static ParkingDate parkingDate;
+
+    @BeforeAll
+    private static void setUp() throws Exception {
+        parkingSpotDAO = new ParkingSpotDAO();
+        parkingSpotDAO.dataBaseConfig = dataBaseTestConfig;
+        ticketDAO = new TicketDAO();
+        ticketDAO.dataBaseConfig = dataBaseTestConfig;
+        dataBasePrepareService = new DataBasePrepareService();
+    }
 
     @BeforeEach
     private void setUpPerTest() {
         try {
+            //when(inputReaderUtil.readSelection()).thenReturn(1);
             when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+            //dataBasePrepareService.clearDataBaseEntries();
 
             ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR,false);
             Ticket ticket = new Ticket();
@@ -47,9 +60,8 @@ public class ParkingServiceTest {
             when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
             when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
 
-            when(parkingDate.getParkingDate()).thenReturn(new Date(System.currentTimeMillis() - (60*60*1000)));
 
-            parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, parkingDate);
+            parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         } catch (Exception e) {
             e.printStackTrace();
             throw  new RuntimeException("Failed to set up test mock objects");
@@ -61,5 +73,13 @@ public class ParkingServiceTest {
         parkingService.processExitingVehicle();
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
     }
+/*
+    @Test
+    public void processIncomingVehicleTest(){
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR,true);
+        when(parkingService.getNextParkingNumberIfAvailable()).thenReturn(parkingSpot);
+        parkingService.processIncomingVehicle();
+        verify(ticketDAO, Mockito.times(1)).saveTicket(any(Ticket.class));
+    }*/
 
 }
