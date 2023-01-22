@@ -30,8 +30,8 @@ public class ParkingSpotDAOTest {
     @Test
     public void takingNextAvailableSlotForCar() {
         ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
-        //CAR slot =0, 1, 2, 3
-        assertEquals(0,parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR));
+        //CAR slot = 1, 2, 3
+        assertEquals(1,parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR));
     }
 
     @Test
