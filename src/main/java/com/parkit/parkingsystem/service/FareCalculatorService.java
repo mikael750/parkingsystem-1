@@ -5,7 +5,7 @@ import com.parkit.parkingsystem.model.Ticket;
 
 public class FareCalculatorService {
 
-    public void calculateFare(Ticket ticket){
+    public void calculateFare(Ticket ticket, long n_tickets){
         if( (ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime())) ){
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }
@@ -14,7 +14,7 @@ public class FareCalculatorService {
         long inMilli = ticket.getInTime().getTime();
         long outMilli = ticket.getOutTime().getTime();
 
-        //Done TODO: Some tests are failing here. Need to check if this logic is correct
+        //TODO: Some tests are failing here. Need to check if this logic is correct
         long dureMinutes = outMilli/1000/60 - inMilli/1000/60;
         //Le prix du Ticket est different selon le taux, la durer et le vehicule
         double taux = 1.0;
@@ -24,6 +24,17 @@ public class FareCalculatorService {
         } else if (dureMinutes < 60) {//calculateFare(Car/Bike)WithLessThanOneHourParkingTime
             taux = 0.75; // give 3/4th parking fare
             duration = 1;
+        }
+
+        double discount;
+        if (n_tickets > 1){
+            discount = 5;
+        }else{
+            discount = 0;
+        }
+
+        if (discount > 0) {
+            System.out.println("Welcome back! As a recurring user of our parking lot, you'll benefit from a 5% discount.");
         }
 
         switch (ticket.getParkingSpot().getParkingType()){
@@ -36,6 +47,9 @@ public class FareCalculatorService {
                 break;
             }
             default: throw new IllegalArgumentException("Unkown Parking Type");
+        }
+        if (discount == 5) {
+            ticket.setPrice((ticket.getPrice()/1.05));
         }
     }
 }

@@ -1,34 +1,43 @@
 package com.parkit.parkingsystem;
 
-import com.parkit.parkingsystem.config.DataBaseConfig;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.TicketDAO;
+import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
+import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
-import com.parkit.parkingsystem.service.FareCalculatorService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TicketDAOTest {
 
+    private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
+    private static DataBasePrepareService dataBasePrepareService;
+
     private static TicketDAO ticketDAO;
     private static Ticket ticket;
 
-
     @BeforeAll
     private static void setUp() {
+        ticketDAO = new TicketDAO();
+        ticketDAO.dataBaseConfig = dataBaseTestConfig;
+        dataBasePrepareService = new DataBasePrepareService();
+
+    }
+
+    @BeforeEach
+    private void setUpPerTest() {
+        dataBasePrepareService.clearDataBaseEntries();
+
         ticket = new Ticket();
         ParkingSpot parkingSpot = new ParkingSpot(2, ParkingType.BIKE,false);
         ticket.setParkingSpot(parkingSpot);
@@ -37,29 +46,29 @@ public class TicketDAOTest {
         Date outTime = new Date();
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
-    }
-
-    @BeforeEach
-    private void setUpPerTest() {
-        ticketDAO = new TicketDAO();
+        ticket.setVehicleRegNumber("ABCDEF");
     }
 
     @Test
     public void getANewTicket() {
-        ticket.setVehicleRegNumber("ABCDEF");
-        ticketDAO.getTicket(ticket.getVehicleRegNumber());
-        assertNotNull(ticket.getVehicleRegNumber());
+        saveANewTicket();
+        assertNotNull(ticketDAO.getTicket(ticket.getVehicleRegNumber()));
     }
 
     @Test
     public void saveANewTicket() {
-        assertFalse(ticketDAO.saveTicket(ticket));
+        assertTrue(ticketDAO.saveTicket(ticket));
     }
 
     @Test
     public void updateExistingTicket() {
-        getANewTicket();
         saveANewTicket();
         assertTrue(ticketDAO.updateTicket(ticket));
+    }
+
+    @Test
+    public void countTicket(){
+        saveANewTicket();
+        assertTrue(ticketDAO.countTicket(ticket.getVehicleRegNumber())>0);
     }
 }
