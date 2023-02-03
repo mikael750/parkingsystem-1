@@ -26,7 +26,7 @@ public class FareCalculatorService {
             duration = 1;
         }
 
-        double discount;
+        double discount;//Story 2
         if (n_tickets > 1){
             discount = 5;
         }else{
